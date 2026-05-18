@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  RESTAURANT
+  DELIVERY
+  ADMIN
+}
+
+enum OrderStatus {
+  RECEIVED
+  PREPARING
+  READY_FOR_PICKUP
+  ON_THE_WAY
+  DELIVERED
+}
+
+enum DeliveryMethod {
+  DELIVERY
+  PICKUP
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(CUSTOMER)
+  address   String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  restaurants Restaurant[] // Se o usuário for dono de restaurante (RESTAURANT)
+  orders      Order[]      @relation("CustomerOrders") // Se o usuário for cliente (CUSTOMER)
+  deliveries  Delivery[]   @relation("DeliveryPerson") // Se o usuário for entregador (DELIVERY)
+  reviews     Review[]
+  messages    ChatMessage[]
+}
+
+model Restaurant {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  address     String
+  specialty   String?
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner      User       @relation(fields: [ownerId], references: [id])
+  categories Category[]
+  products   Product[]
+  orders     Order[]
+  reviews    Review[]
+}
+
+model Category {
+  id           String   @id @default(uuid())
+  name         String
+  restaurantId String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+  products   Product[]
+}
+
+model Product {
+  id           String   @id @default(uuid())
+  name         String
+  description  String?
+  price        Float
+  restaurantId String
+  categoryId   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant  @relation(fields: [restaurantId], references: [id])
+  category   Category    @relation(fields: [categoryId], references: [id])
+  orderItems OrderItem[]
+}
+
+model Order {
+  id           String      @id @default(uuid())
+  customerId   String
+  restaurantId String
+  totalAmount  Float
+  status       OrderStatus @default(RECEIVED)
+  deliveryMethod DeliveryMethod @default(DELIVERY)
+  deliveryAddress String?
+  verificationCode String @default("0000") // PIN de 4 dígitos para confirmar entrega
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  customer   User        @relation("CustomerOrders", fields: [customerId], references: [id])
+  restaurant Restaurant  @relation(fields: [restaurantId], references: [id])
+  items      OrderItem[]
+  delivery   Delivery?
+  review     Review?
+  messages   ChatMessage[]
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float // Importante: Salvar o preço no momento da compra
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model Delivery {
+  id               String    @id @default(uuid())
+  orderId          String    @unique
+  deliveryPersonId String?
+  acceptedAt       DateTime?
+  pickedUpAt       DateTime?
+  deliveredAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  order          Order @relation(fields: [orderId], references: [id])
+  deliveryPerson User? @relation("DeliveryPerson", fields: [deliveryPersonId], references: [id])
+}
+
+model Review {
+  id           String   @id @default(uuid())
+  rating       Int
+  comment      String?
+  orderId      String   @unique
+  restaurantId String
+  customerId   String
+  createdAt    DateTime @default(now())
+
+  order      Order      @relation(fields: [orderId], references: [id])
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+  customer   User       @relation(fields: [customerId], references: [id])
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  orderId   String
+  senderId  String
+  role      Role
+  content   String
+  createdAt DateTime @default(now())
+
+  order  Order @relation(fields: [orderId], references: [id])
+  sender User  @relation(fields: [senderId], references: [id])
+}
