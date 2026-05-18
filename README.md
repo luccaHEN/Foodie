@@ -8,6 +8,12 @@ Um aplicativo completo de delivery de comida (estilo iFood / Uber Eats), constru
 ![Java](https://img.shields.io/badge/Backend%202-Java%20%2B%20Spring%20Boot-ED8B00)
 ![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1)
 
+---
+
+<p align="center">
+  <img src="./docs/telaInicial.jpeg" alt="Tela Inicial do Foodie App" width="800">
+</p>
+
 ## ✨ Principais Funcionalidades
 
 O ecossistema é dividido em 3 módulos principais, garantindo uma experiência completa ponta-a-ponta com base no **Role (Cargo)** do usuário:
@@ -113,8 +119,8 @@ O backend Node roda na porta `3333`.
 1. Navegue até a pasta `frontend`.
 2. Instale as dependências: `npm install`.
 3. Verifique o arquivo `src/services/api.ts` e a biblioteca de WebSockets dependendo de qual backend você subiu:
-   - Para testar com o **Java**, use a URL `http://localhost:8080/api` e o cliente `@stomp/stompjs`.
-   - Para testar com o **Node**, use a URL `http://localhost:3333/api` e o cliente `socket.io-client`.
+   - Para testar com o **Java**, use a URL `http://localhost:8080/` e o cliente `@stomp/stompjs`.
+   - Para testar com o **Node**, use a URL `http://localhost:3333/` e o cliente `socket.io-client`.
 4. Inicie o vite:
    ```bash
    npm run dev
